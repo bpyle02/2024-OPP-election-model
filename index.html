@@ -38,8 +38,8 @@
                     "electoral_votes": parseInt(sheetObjects[i]['"Electoral Votes"']),
                     "expected_turnout": parseInt(sheetObjects[i]['"Expected Votes"']),
                     "final_margin": parseFloat(sheetObjects[i]['"FINAL MARGIN"']),
-                    "trump_votes": parseInt(sheetObjects[i]['"Trump Votes"']),
-                    "harris_votes": parseInt(sheetObjects[i]['"Harris Votes"'])
+                    "trump_votes": parseInt(sheetObjects[i]['"TRUMP VOTES"']),
+                    "harris_votes": parseInt(sheetObjects[i]['"HARRIS VOTES"'])
                 }
             }
 
@@ -69,6 +69,9 @@
 
                 harrisTotalVotes += info.harris_votes
                 trumpTotalVotes += info.trump_votes
+
+                console.log(state)
+                console.log()
 
                 // Apply color based on winner
                 if (info.final_margin < 0) {
@@ -172,11 +175,12 @@
 
         // Function to calculate state rating based on margin
         function calculateStateRating(margin) {
-            if (margin < .12 && margin >= .08) {
+            console.log(margin)
+            if (margin < 15 && margin >= 5) {
                 return "likely_";
-            } else if (margin < .08 && margin >= .03) {
+            } else if (margin < 5 && margin >= 1) {
                 return "leans_";
-            } else if (margin < .03) {
+            } else if (margin < 1) {
                 return "tilt_";
             } else {
                 return "safe_";
