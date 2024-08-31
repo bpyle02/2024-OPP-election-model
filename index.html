@@ -108,44 +108,72 @@
                         getStateData(state, info.electoral_votes, info.expected_turnout, info.trump_votes, info.harris_votes);
                     });
 
-                    // harrisSafePct = harrisSafe / totalElectoralVotes * 100
-                    // harrisLikelyPct = harrisLikely / totalElectoralVotes * 100
-                    // harrisLeanPct = harrisLean / totalElectoralVotes * 100
-                    // harrisTiltPct = harrisTilt / totalElectoralVotes * 100
-                    // trumpSafePct = trumpSafe / totalElectoralVotes * 100
-                    // trumpLikelyPct = trumpLikely / totalElectoralVotes * 100
-                    // trumpLeanPct = trumpLean / totalElectoralVotes * 100
-                    // trumpTiltPct = trumpTilt / totalElectoralVotes * 100
+                    harrisSafePct = harrisSafe / harrisElectoralVotes * 100
+                    harrisLikelyPct = harrisLikely / harrisElectoralVotes * 100
+                    harrisLeanPct = harrisLean / harrisElectoralVotes * 100
+                    harrisTiltPct = harrisTilt / harrisElectoralVotes * 100
+                    trumpSafePct = trumpSafe / trumpElectoralVotes * 100
+                    trumpLikelyPct = trumpLikely / trumpElectoralVotes * 100
+                    trumpLeanPct = trumpLean / trumpElectoralVotes * 100
+                    trumpTiltPct = trumpTilt / trumpElectoralVotes * 100
+
+                    console.log("Trump: " + trumpTilt + ", " + trumpLean + ", " + trumpLikely + ", " + trumpSafe);
+                    console.log("Trump: " + (trumpTiltPct + trumpLeanPct + trumpLikelyPct + trumpSafePct));
+
+                    console.log("Harris: " + harrisTilt + ", " + harrisLean + ", " + harrisLikely + ", " + harrisSafe);
+                    console.log("Harris: " + (harrisTiltPct + harrisLeanPct + harrisLikelyPct + harrisSafePct));
 
                     // Update bar widths and text
                     document.getElementById('trumpBar').style.width = (trumpElectoralVotes / totalElectoralVotes) * 100 + '%';
-//                    document.getElementById('trumpTilt').style.width = trumpTiltPct + '%';
-//                    document.getElementById('trumpLean').style.width = (trumpLeanPct + trumpTiltPct) + '%';
-//                    document.getElementById('trumpLikely').style.width = (trumpLikelyPct + trumpLeanPct + trumpTiltPct) + '%';
-//                    document.getElementById('trumpSafe').style.width = (trumpSafePct + trumpLikelyPct + trumpLeanPct + trumpTiltPct) + '%';
+                    document.getElementById('trumpEV').style.width = (trumpElectoralVotes / totalElectoralVotes) * 100 + '%';
+
+                    document.getElementById('trumpTilt').style.width = trumpTiltPct + '%';
+                    document.getElementById('trumpLean').style.width = trumpLeanPct + '%';
+                    document.getElementById('trumpLikely').style.width = trumpLikelyPct + '%';
+                    document.getElementById('trumpSafe').style.width = trumpSafePct + '%';
+
+                    if (trumpTilt > 0) {
+                        document.getElementById('trumpTilt').textContent = harrisTilt;
+                    }
+
+                    if (trumpLean > 0) {
+                        document.getElementById('trumpLean').textContent = harrisLean;
+                    }
+
+                    if (trumpLikely > 0) {
+                        document.getElementById('trumpLikely').textContent = harrisLikely;
+                    }
+
+                    if (trumpSafe > 0) {
+                        document.getElementById('trumpSafe').textContent = harrisSafe;
+                    }
 
                     document.getElementById('harrisBar').style.width = (harrisElectoralVotes / totalElectoralVotes) * 100 + '%';
-//                    document.getElementById('harrisTilt').style.width = harrisTiltPct + '%';
-//                    document.getElementById('harrisLean').style.width = (harrisLeanPct + harrisTiltPct) + '%';
-//                    document.getElementById('harrisLikely').style.width = (harrisLikelyPct + harrisLeanPct + harrisTiltPct) + '%';
-//                    document.getElementById('harrisSafe').style.width = (harrisSafePct + harrisLikelyPct + harrisLeanPct + harrisTiltPct) + '%';
+                    document.getElementById('harrisEV').style.width = (harrisElectoralVotes / totalElectoralVotes) * 100 + '%';
+
+                    document.getElementById('harrisTilt').style.width = harrisTiltPct + '%';
+                    document.getElementById('harrisLean').style.width = harrisLeanPct + '%';
+                    document.getElementById('harrisLikely').style.width = harrisLikelyPct + '%';
+                    document.getElementById('harrisSafe').style.width = harrisSafePct + '%';
+
+                    if (harrisTilt > 0) {
+                        document.getElementById('harrisTilt').textContent = harrisTilt;
+                    }
+
+                    if (harrisLean > 0) {
+                        document.getElementById('harrisLean').textContent = harrisLean;
+                    }
+
+                    if (harrisLikely > 0) {
+                        document.getElementById('harrisLikely').textContent = harrisLikely;
+                    }
+
+                    if (harrisSafe > 0) {
+                        document.getElementById('harrisSafe').textContent = harrisSafe;
+                    }
 
                     document.getElementById('trumpElectoralVotes').textContent = trumpElectoralVotes + " ";
-//                    document.getElementById('trumpTiltElectoralVotes').textContent = trumpTilt + " ";
-//                    document.getElementById('trumpLeanElectoralVotes').textContent = trumpLean + " ";
-//                   document.getElementById('trumpLikelyElectoralVotes').textContent = trumpLikely + " ";
-//                    document.getElementById('trumpSafeElectoralVotes').textContent = trumpSafe + " ";
-
-//                    document.getElementById('trumpTiltElectoralVotes').style.margin = "0 0 0 " + document.getElementById('trumpTiltElectoralVotes').offsetWidth + "px";
-//                    document.getElementById('trumpLeanElectoralVotes').style.margin = "0 0 0 " + (document.getElementById('trumpLeanElectoralVotes').offsetWidth + document.getElementById('trumpTiltElectoralVotes').offsetWidth)+ "px";
-//                    document.getElementById('trumpLikelyElectoralVotes').style.margin = "0 0 0 " + (document.getElementById('trumpLikelyElectoralVotes').offsetWidth + document.getElementById('trumpLeanElectoralVotes').offsetWidth + document.getElementById('trumpTiltElectoralVotes').offsetWidth) + "px";
-//                    document.getElementById('trumpSafeElectoralVotes').style.margin = "0 0 0 " + (document.getElementById('trumpSafeElectoralVotes').offsetWidth + document.getElementById('trumpLikelyElectoralVotes').offsetWidth + document.getElementById('trumpLeanElectoralVotes').offsetWidth + document.getElementById('trumpTiltElectoralVotes').offsetWidth) + "px";
-
                     document.getElementById('harrisElectoralVotes').textContent = harrisElectoralVotes + " ";
-//                    document.getElementById('harrisTiltElectoralVotes').textContent = harrisTilt + " ";
-//                    document.getElementById('harrisLeanElectoralVotes').textContent = harrisLean + " ";
-//                    document.getElementById('harrisLikelyElectoralVotes').textContent = harrisLikely + " ";
-//                    document.getElementById('harrisSafeElectoralVotes').textContent = harrisSafe + " ";
 
                     document.getElementById("trump-vote-totals").innerHTML = `
                         <h1>Trump</h1><br />
@@ -220,38 +248,38 @@
 
             if (margin < 15 && margin >= 5) {
 
-                // if (winner == "trump") {
-                //     trumpLikely += electoral_votes
-                // } else {
-                //     harrisLikely += electoral_votes
-                // }
+                if (winner == "trump") {
+                    trumpLikely += electoral_votes
+                } else {
+                    harrisLikely += electoral_votes
+                }
 
                 return "likely_";
             } else if (margin < 5 && margin >= 1) {
 
-                // if (winner == "trump") {
-                //     trumpLean += electoral_votes
-                // } else {
-                //     harrisLean += electoral_votes
-                // }
+                if (winner == "trump") {
+                    trumpLean += electoral_votes
+                } else {
+                    harrisLean += electoral_votes
+                }
 
                 return "leans_";
             } else if (margin < 1) {
 
-                // if (winner == "trump") {
-                //     trumpTilt += electoral_votes
-                // } else {
-                //     harrisTilt += electoral_votes
-                // }
+                if (winner == "trump") {
+                    trumpTilt += electoral_votes
+                } else {
+                    harrisTilt += electoral_votes
+                }
 
                 return "tilt_";
             } else {
 
-                // if (winner == "trump") {
-                //     trumpSafe += electoral_votes
-                // } else {
-                //     harrisSafe += electoral_votes
-                // }
+                if (winner == "trump") {
+                    trumpSafe += electoral_votes
+                } else {
+                    harrisSafe += electoral_votes
+                }
 
                 return "safe_";
             }
@@ -631,6 +659,72 @@ a:hover path {
     float: left;
 }
 
+/*  */
+
+.electoral-bar-split {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-top: 0.33rem;
+}
+
+.candidate-section {
+    display: flex;
+    height: 30px;
+    width: 100%;
+}
+
+#harrisEV {
+    background-color: #244999; /* Blue for Harris */
+}
+
+#trumpEV {
+    background-color: #d22532; /* Red for Trump */
+}
+
+.electoral {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    height: 100%;
+}
+
+#harrisEV .safe {
+    background-color: #244999;
+}
+
+#harrisEV .likely {
+    background-color: #577ccc;
+}
+
+#harrisEV .lean {
+    background-color: #8aafff;
+}
+
+#harrisEV .tilt {
+    background-color: #949bb3;
+}
+
+#trumpEV .tilt {
+    background-color: #cf8980;
+}
+
+#trumpEV .lean {
+    background-color: #ff8b98;
+}
+
+#trumpEV .likely {
+    background-color: #ff5865;
+}
+#trumpEV .safe {
+    background-color: #d22532;
+}
+
+/*  */
+
 @media (max-width: 1398px) {
 
     #map {
@@ -720,32 +814,22 @@ a:hover path {
                     <span id="harrisElectoralVotes">0</span>
                 </div>
             </div>
-            <!-- <div class="electoral-bar">
-                <div class="candidate trump-safe" id="trumpSafe">
-                    <span id="trumpSafeElectoralVotes">0</span>
+
+            <div class="electoral-bar-split">
+                <div class="candidate-section" id="trumpEV">
+                    <div class="electoral safe" id="trumpSafe"></div>
+                    <div class="electoral likely" id="trumpLikely"></div>
+                    <div class="electoral lean" id="trumpLean"></div>
+                    <div class="electoral tilt" id="trumpTilt"></div>
                 </div>
-                <div class="candidate trump-likely" id="trumpLikely">
-                    <span id="trumpLikelyElectoralVotes">0</span>
+                <div class="candidate-section" id="harrisEV">
+                    <div class="electoral tilt" id="harrisTilt"></div>
+                    <div class="electoral lean" id="harrisLean"></div>
+                    <div class="electoral likely" id="harrisLikely"></div>
+                    <div class="electoral safe" id="harrisSafe"></div>
                 </div>
-                <div class="candidate trump-lean" id="trumpLean">
-                    <span id="trumpLeanElectoralVotes">0</span>
-                </div>
-                <div class="candidate trump-tilt" id="trumpTilt">
-                    <span id="trumpTiltElectoralVotes">0</span>
-                </div>
-                <div class="candidate harris-tilt" id="harrisTilt">
-                    <span id="harrisTiltElectoralVotes">0</span>
-                </div>
-                <div class="candidate harris-lean" id="harrisLean">
-                    <span id="harrisLeanElectoralVotes">0</span>
-                </div>
-                <div class="candidate harris-likely" id="harrisLikely">
-                    <span id="harrisLikelyElectoralVotes">0</span>
-                </div>
-                <div class="candidate harris-safe" id="harrisSafe">
-                    <span id="harrisSafeElectoralVotes">0</span>
-                </div>
-            </div> -->
+            </div>
+
         </div>
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Kamala_Harris_Vice_Presidential_Portrait.jpg/1024px-Kamala_Harris_Vice_Presidential_Portrait.jpg" />
     </div>
