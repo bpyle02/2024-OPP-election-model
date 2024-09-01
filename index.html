@@ -41,15 +41,20 @@
             let sheetObjects = csvToObject(data);
 
             for (i in sheetObjects) {
+                console.log(sheetObjects[i])
                 model_data[sheetObjects[i]['"State"']] = {
                     "state_abbreviation": sheetObjects[i]['"State Abbreviation"'],
                     "electoral_votes": parseInt(sheetObjects[i]['"Electoral Votes"']),
                     "expected_turnout": parseInt(sheetObjects[i]['"Expected Votes"']),
                     "final_margin": parseFloat(sheetObjects[i]['"FINAL MARGIN"']),
                     "trump_votes": parseInt(sheetObjects[i]['"TRUMP VOTES"']),
-                    "harris_votes": parseInt(sheetObjects[i]['"HARRIS VOTES"'])
+                    "harris_votes": parseInt(sheetObjects[i]['"HARRIS VOTES"']),
+                    "trump_win_pct": parseFloat(sheetObjects[i]['"Trump Win %"']),
+                    "harris_win_pct": parseFloat(sheetObjects[i]['"Harris Win %"']),
                 }
+                // console.log(model_data[i])
             }
+
 
             colorStates(model_data)
         }
@@ -78,6 +83,8 @@
                 harrisTotalVotes += info.harris_votes
                 trumpTotalVotes += info.trump_votes
 
+                console.log(state)
+
                 // Apply color based on winner
                 if (info.final_margin < 0) {
                     statePath.classList.add(calculateStateRating(info.final_margin, info.electoral_votes) + 'democrat');
@@ -105,8 +112,10 @@
 
                 requestAnimationFrame(() => {
                     stateLink.addEventListener("click", () => {
-                        getStateData(state, info.electoral_votes, info.expected_turnout, info.trump_votes, info.harris_votes);
+                        getStateData(state, info.electoral_votes, info.expected_turnout, info.trump_votes, info.harris_votes, info.trump_win_pct, info.harris_win_pct);
                     });
+
+                    console.log(state + " - " + info.trump_votes + ", " + info.harris_votes)
 
                     harrisSafePct = harrisSafe / harrisElectoralVotes * 100
                     harrisLikelyPct = harrisLikely / harrisElectoralVotes * 100
@@ -117,11 +126,11 @@
                     trumpLeanPct = trumpLean / trumpElectoralVotes * 100
                     trumpTiltPct = trumpTilt / trumpElectoralVotes * 100
 
-                    console.log("Trump: " + trumpTilt + ", " + trumpLean + ", " + trumpLikely + ", " + trumpSafe);
-                    console.log("Trump: " + (trumpTiltPct + trumpLeanPct + trumpLikelyPct + trumpSafePct));
+                    // console.log("Trump: " + trumpTilt + ", " + trumpLean + ", " + trumpLikely + ", " + trumpSafe);
+                    // console.log("Trump: " + (trumpTiltPct + trumpLeanPct + trumpLikelyPct + trumpSafePct));
 
-                    console.log("Harris: " + harrisTilt + ", " + harrisLean + ", " + harrisLikely + ", " + harrisSafe);
-                    console.log("Harris: " + (harrisTiltPct + harrisLeanPct + harrisLikelyPct + harrisSafePct));
+                    // console.log("Harris: " + harrisTilt + ", " + harrisLean + ", " + harrisLikely + ", " + harrisSafe);
+                    // console.log("Harris: " + (harrisTiltPct + harrisLeanPct + harrisLikelyPct + harrisSafePct));
 
                     // Update bar widths and text
                     document.getElementById('trumpBar').style.width = (trumpElectoralVotes / totalElectoralVotes) * 100 + '%';
@@ -285,14 +294,15 @@
             }
         }
 
-        function getStateData(state, electoral_votes, expected_turnout, trump_votes, harris_votes) {
+        function getStateData(state, electoral_votes, expected_turnout, trump_votes, harris_votes, trump_win_pct, harris_win_pct) {
             popup = document.getElementById("state-data-inner");
 
             const popupHTML = `
                 <h1>${state} - ${electoral_votes} Electoral Votes</h1>
                 <h3>Expected Turnout: ${Math.round(expected_turnout).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</h3>
-                <p>Trump Votes: ${Math.round(trump_votes).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
-                <p>Harris Votes: ${Math.round(harris_votes).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p>
+                <p>Trump: ${Math.round(trump_votes).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} (${(trump_votes / (trump_votes + harris_votes) * 100).toFixed(2)}%)</p>
+                <p>Harris: ${Math.round(harris_votes).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} (${(harris_votes / (trump_votes + harris_votes) * 100).toFixed(2)}%)</p>
+                <p>Odds: Trump - ${trump_win_pct.toFixed(2)}%, Harris - ${harris_win_pct.toFixed(2)}%</p>
             `;
 
             popup.innerHTML = popupHTML;
@@ -340,6 +350,8 @@
                 // Use the first column as the key for the state
                 result[stateData[headers[0]]] = stateData;
             }
+
+            console.log(result)
 
             return result;
         }
