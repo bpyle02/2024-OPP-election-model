@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script>
         let totalElectoralVotes = 538
 
@@ -31,11 +32,12 @@
         let harrisLikely = 0
         let harrisSafe = 0
 
-        const sheetName = encodeURIComponent("Sheet1")
+        const sheetName = encodeURIComponent("2024")
         const sheetId = '1cnFrrD71xnadqPeJigYMiWe2ErTgHR-HG4b8d_0sWLs'; // Replace with your spreadsheet ID
         const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetName}`; // Replace with your sheet name
 
         model_data = {}
+
         national_odds_trump = 0;
         national_odds_harris = 0;
 
@@ -393,6 +395,8 @@
                 result[stateData[headers[0]]] = stateData;
             }
 
+            console.log(result)
+
             return result;
         }
 
@@ -695,6 +699,19 @@
             background-color: #ccc39f;
         }
 
+        .chart {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: auto;
+            width: 80%;
+        }
+
+        .chart h1 {
+            color: #e0e0e0;
+        }
+
         @media (max-width: 900px) {
             img {
                 width: 80%;
@@ -717,6 +734,10 @@
                 padding: 0;
                 margin: 0;
                 font-size: x-large;
+            }
+
+            .chart {
+                width: 100%;
             }
         }
 
@@ -1754,7 +1775,154 @@
         <div class="state-data">
             <div id="state-data-inner"></div>
         </div>
-    <div id="info"></div>
+    <div class="chart">
+        <h1>OPP National Average Graph</h1>
+        <canvas id="myChart"></canvas>
+    </div>
 </body>
+<script>
+    const sheetName2 = encodeURIComponent("Dated Averages and Odds")
+    const sheetURL2 = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetName2}`; // Replace with your sheet name
+    const sheetName3 = encodeURIComponent("Dated National Average")
+    const sheetURL3 = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetName3}`; // Replace with your sheet name
 
+    odds_data = {}
+    national_average_data = {}
+    national_average_dates = []
+    trump_national_averages = []
+    harris_national_averages = []
+    kennedy_national_averages = []
+    west_national_averages = []
+    stein_national_averages = []
+    undecided_national_averages = []
+
+    async function getData() {
+        try {
+            const [oddsResponse, nationalResponse] = await Promise.all([
+                fetch(sheetURL2),
+                fetch(sheetURL3)
+            ]);
+
+            const oddsText = await oddsResponse.text();
+            const nationalText = await nationalResponse.text();
+
+            handleOddsData(oddsText);
+            handleNationalAverageData(nationalText);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+    
+    function handleOddsData(data) {
+        odds_data = csvToObject(data);
+    }
+
+    function handleNationalAverageData(data) {
+        national_average_data = csvToObject(data);
+
+        console.log(typeof(national_average_data))
+
+        for (const [key, value] of Object.entries(national_average_data)) {
+            if (value['"TRUMP"'] != '') {
+                national_average_dates.push(key)
+                trump_national_averages.push({x: key, y: value['"TRUMP"']})
+                harris_national_averages.push({x: key, y: value['"HARRIS"']})
+                kennedy_national_averages.push({x: key, y: value['"KENNEDY"']})
+                west_national_averages.push({x: key, y: value['"WEST"']})
+                stein_national_averages.push({x: key, y: value['"STEIN"']})
+                undecided_national_averages.push({x: key, y: value['"UNDECIDED"']})
+            }
+        }
+    }
+    
+    async function chartIt() {
+        console.log(trump_national_averages)
+        console.log(national_average_dates)
+
+        const ctx = document.getElementById('myChart');
+    
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+            labels: national_average_dates,
+            datasets: [{
+                    label: 'Trump',
+                    data: trump_national_averages,
+                    fill: false,
+                    borderColor: '#981f1f',
+                    tension: 0.1
+                },
+                {
+                    label: 'Harris',
+                    data: harris_national_averages,
+                    fill: false,
+                    borderColor: '#1f4aa8',
+                    tension: 0.1
+                },
+                {
+                    label: 'Kennedy',
+                    data: kennedy_national_averages,
+                    fill: false,
+                    borderColor: '#901f98',
+                    tension: 0.1
+                },
+                {
+                    label: 'Stein',
+                    data: west_national_averages,
+                    fill: false,
+                    borderColor: '#7da65a',
+                    tension: 0.1
+                },
+                {
+                    label: 'West',
+                    data: stein_national_averages,
+                    fill: false,
+                    borderColor: '#ffe377',
+                    tension: 0.1
+                },
+                {
+                    label: 'Undecided',
+                    data: undecided_national_averages,
+                    fill: false,
+                    borderColor: 'gray',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        grid: {
+                            color: '#a0a0a0' // Change x-axis gridline color
+                        },
+                        ticks: {
+                            color: '#e0e0e0' // X-axis label color
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: '#a0a0a0' // Change y-axis gridline color
+                        },
+                        ticks: {
+                            color: '#e0e0e0' // Y-axis label color
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#e0e0e0' // Change the color of legend text
+                        }
+                    },
+                    tooltip: {
+                        bodyColor: '#e0e0e0', // Change the color of tooltip text
+                        titleColor: '#e0e0e0' // Change the color of tooltip title
+                    }
+                }
+            }
+        });
+    }
+
+    getData().then(() => chartIt());
+
+</script>
 </html>
