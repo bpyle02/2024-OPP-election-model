@@ -22,6 +22,8 @@
         let trumpLikely = 0
         let trumpSafe = 0
 
+        let tossupElectoralVotes = 0
+
         let harrisTotalVotes = 0
         let harrisElectoralVotes = 0
         let harrisTilt = 0
@@ -34,6 +36,8 @@
         const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetName}`; // Replace with your sheet name
 
         model_data = {}
+        national_odds_trump = 0;
+        national_odds_harris = 0;
 
         fetch(sheetURL)
             .then(response => response.text())
@@ -44,7 +48,14 @@
             let sheetObjects = csvToObject(data);
 
             for (i in sheetObjects) {
-                console.log(sheetObjects[i])
+
+                if (sheetObjects[i]['"State"'] == 'Alabama') {
+                    national_odds_harris = sheetObjects[i]['"NATIONAL ODDS HARRIS"']
+                    national_odds_trump = sheetObjects[i]['"NATIONAL ODDS TRUMP"']
+                    console.log(national_odds_harris)
+                    console.log(national_odds_trump)
+                }
+
                 model_data[sheetObjects[i]['"State"']] = {
                     "state_abbreviation": sheetObjects[i]['"State Abbreviation"'],
                     "electoral_votes": parseInt(sheetObjects[i]['"Electoral Votes"']),
@@ -54,6 +65,7 @@
                     "harris_votes": parseInt(sheetObjects[i]['"HARRIS VOTES"']),
                     "trump_win_pct": parseFloat(sheetObjects[i]['"Trump Win %"']),
                     "harris_win_pct": parseFloat(sheetObjects[i]['"Harris Win %"']),
+                    "win_pct_margin": parseFloat(sheetObjects[i]['"Win % Margin"'])
                 }
                 // console.log(model_data[i])
             }
@@ -88,19 +100,19 @@
                 trumpTotalVotes += info.trump_votes
 
                 // Apply color based on winner
-                if (info.final_margin < 0) {
-                    statePath.classList.add(calculateStateRating(info.final_margin, info.electoral_votes) + 'democrat');
+                if (info.win_pct_margin < -20) {
+                    statePath.classList.add(calculateStateRating(info.win_pct_margin, info.electoral_votes) + 'democrat');
 
                     if (statePathRect) {
-                        statePathRect.classList.add(calculateStateRating(info.final_margin, 0) + 'democrat');
+                        statePathRect.classList.add(calculateStateRating(info.win_pct_margin, 0) + 'democrat');
                     }
 
                     harrisElectoralVotes += info.electoral_votes
-                } else if (info.final_margin > 0) {
-                    statePath.classList.add(calculateStateRating(info.final_margin, info.electoral_votes) + 'republican');
+                } else if (info.win_pct_margin > 20) {
+                    statePath.classList.add(calculateStateRating(info.win_pct_margin, info.electoral_votes) + 'republican');
 
                     if (statePathRect) {
-                        statePathRect.classList.add(calculateStateRating(info.final_margin, 0) + 'republican');
+                        statePathRect.classList.add(calculateStateRating(info.win_pct_margin, 0) + 'republican');
                     }
 
                     trumpElectoralVotes += info.electoral_votes
@@ -110,6 +122,8 @@
                     if (statePathRect) {
                         statePathRect.classList.add('tossup');
                     }
+
+                    tossupElectoralVotes += info.electoral_votes
                 }
 
                 requestAnimationFrame(() => {
@@ -155,6 +169,11 @@
                         document.getElementById('trumpSafe').style.zIndex = 50;
                     }
 
+                    document.getElementById('tossupBar').style.width = (tossupElectoralVotes / totalElectoralVotes) * 100 + '%';
+                    document.getElementById('tossupBar').style.left = (trumpElectoralVotes / totalElectoralVotes) * 100 + '%';
+                    document.getElementById('tossupEV').style.width = (tossupElectoralVotes / totalElectoralVotes) * 100 + '%';
+                    document.getElementById('tossup').textContent = tossupElectoralVotes;
+
                     document.getElementById('harrisBar').style.width = (harrisElectoralVotes / totalElectoralVotes) * 100 + '%';
                     document.getElementById('harrisEV').style.width = (harrisElectoralVotes / totalElectoralVotes) * 100 + '%';
 
@@ -183,32 +202,33 @@
                         document.getElementById('harrisSafe').style.zIndex = 50;
                     }
 
-                    document.getElementById('trumpElectoralVotes').textContent = trumpElectoralVotes + " ";
-                    document.getElementById('harrisElectoralVotes').textContent = harrisElectoralVotes + " ";
+                    document.getElementById('trumpElectoralVotes').textContent = trumpElectoralVotes;
+                    document.getElementById('harrisElectoralVotes').textContent = harrisElectoralVotes;
+                    document.getElementById('tossupElectoralVotes').textContent = tossupElectoralVotes
 
                     document.getElementById("trump-vote-totals").innerHTML = `
-                        <span class="trump-odds">${(trumpTotalVotes / (trumpTotalVotes + harrisTotalVotes) * 100).toFixed(0) + "%"}</span>
+                        <span class="trump-odds">${(national_odds_trump).toFixed(0) + "%"}</span>
                     `
 
                     if (window.innerWidth < 900) {
                         document.getElementById("harris-section").innerHTML = `
                             <div>
                                 <img src="https://raw.githubusercontent.com/bpyle02/2024-interactive-election-model/main/images/harris-square.png" />
-                                <span class="harris-header-text">Harris</span>
+                                <span class="harris-header-text">Harris Odds</span>
                             </div>
                             <div id="harris-vote-totals">
-                                <span clss="harris-odds">${(harrisTotalVotes / (trumpTotalVotes + harrisTotalVotes) * 100).toFixed(0) + "%"}</span>
+                                <span clss="harris-odds">${(national_odds_harris).toFixed(0) + "%"}</span>
                             </div>
                         `
                     }
                     else {
                         document.getElementById("harris-section").innerHTML = `
                             <div id="harris-vote-totals">
-                                <span="harris-odds">${(harrisTotalVotes / (trumpTotalVotes + harrisTotalVotes) * 100).toFixed(0) + "%"}</span>
+                                <span="harris-odds">${(national_odds_harris).toFixed(0) + "%"}</span>
                             </div>
                             <div>
                                 <img src="https://raw.githubusercontent.com/bpyle02/2024-interactive-election-model/main/images/harris-square.png" />
-                                <span class="harris-header-text">Harris</span>
+                                <span class="harris-header-text">Harris Odds</span>
                             </div>
                         `
                     }
@@ -221,13 +241,21 @@
                         const popupHTML = `
                             <div class='popup-wrapper'>
                                 <div class='popup-header'>
-                                    <h2>${state} - ${info.electoral_votes} EV</h2>
+                                    <h3>${state} - ${info.electoral_votes} EV</h3>
                                 </div>
-                                <div class='trump' style='width:${trumpWidth}%;'>
+                                <span style='font-weight: bold;'>Expected Vote Share:</span>
+                                <div class='trump' style='width:${trumpWidth}%; height: 1.8rem;'>
                                     <p style='white-space: nowrap'>Trump ${(info.trump_votes / info.expected_turnout * 100).toFixed(2)}%</p>
                                 </div>
-                                <div class='harris' style='width:${harrisWidth}%;'>
+                                <div class='harris' style='width:${harrisWidth}%; height: 1.8rem;'>
                                     <p style='white-space: nowrap'>Harris ${(info.harris_votes / info.expected_turnout * 100).toFixed(2)}%</p>
+                                </div>
+                                <span style='font-weight: bold;'>Odds:</span>
+                                <div class='trump' style='width:${trumpWidth}%; height: 1.8rem;'>
+                                    <p style='white-space: nowrap'>Trump ${(info.trump_win_pct).toFixed(2)}%</p>
+                                </div>
+                                <div class='harris' style='width:${harrisWidth}%; height: 1.8rem;'>
+                                    <p style='white-space: nowrap'>Harris ${(info.harris_win_pct).toFixed(2)}%</p>
                                 </div>
                             </div>
                         `;
@@ -264,26 +292,16 @@
 
         // Function to calculate state rating based on margin
         function calculateStateRating(margin, electoral_votes) {
+            console.log(margin)
+
             winner = "trump"
             
             if (margin < 0) {
                 winner = "harris"
-            }
-            
-            if (margin < 0) {
                 margin *= -1
             }
 
-            if (margin < 15 && margin >= 5) {
-
-                if (winner == "trump") {
-                    trumpLikely += electoral_votes
-                } else {
-                    harrisLikely += electoral_votes
-                }
-
-                return "likely_";
-            } else if (margin < 5 && margin >= 1) {
+            if (margin <= 40) {
 
                 if (winner == "trump") {
                     trumpLean += electoral_votes
@@ -292,15 +310,15 @@
                 }
 
                 return "leans_";
-            } else if (margin < 1) {
+            } else if (margin <= 60) {
 
                 if (winner == "trump") {
-                    trumpTilt += electoral_votes
+                    trumpLikely += electoral_votes
                 } else {
-                    harrisTilt += electoral_votes
+                    harrisLikely += electoral_votes
                 }
 
-                return "tilt_";
+                return "likely_";
             } else {
 
                 if (winner == "trump") {
@@ -327,13 +345,18 @@
             popup.innerHTML = popupHTML;
         }
 
-        function csvToObject(csv) {
+        function csvToObject(csv, length=-1) {
+            
             const lines = csv.trim().split('\n');
             const headers = lines[0].split(',');
-
+            
             const result = {};
+            
+            if (length == -1) {
+                length = lines.length
+            }
 
-            for (let i = 1; i < lines.length; i++) {
+            for (let i = 1; i < length; i++) {
                 const currentLine = lines[i].split(',');
                 const stateData = {};
 
@@ -378,21 +401,21 @@
                 document.getElementById("harris-section").innerHTML = `
                     <div>
                         <img src="https://raw.githubusercontent.com/bpyle02/2024-interactive-election-model/main/images/harris-square.png" />
-                        <span class="harris-header-text">Harris</span>
+                        <span class="harris-header-text">Harris Odds</span>
                     </div>
                     <div id="harris-vote-totals">
-                        <span class="harris-odds">${(harrisTotalVotes / (trumpTotalVotes + harrisTotalVotes) * 100).toFixed(0) + "%"}</span>
+                        <span class="harris-odds">${(national_odds_trump).toFixed(0) + "%"}</span>
                     </div>
                 `
             }
             else {
                 document.getElementById("harris-section").innerHTML = `
                     <div id="harris-vote-totals">
-                        <span class="harris-odds">${(harrisTotalVotes / (trumpTotalVotes + harrisTotalVotes) * 100).toFixed(0) + "%"}</span>
+                        <span class="harris-odds">${(national_odds_harris).toFixed(0) + "%"}</span>
                     </div>
                     <div>
                         <img src="https://raw.githubusercontent.com/bpyle02/2024-interactive-election-model/main/images/harris-square.png" />
-                        <span class="harris-header-text">Harris</span>
+                        <span class="harris-header-text">Harris Odds</span>
                     </div>
                 `
             }
@@ -495,6 +518,10 @@
             left: 0;
         }
 
+        .tossup-electoral {
+            background-color: #ccc39f;
+        }
+
         .harris-electoral {
             background-color: #1f4aa8;
             right: 0;
@@ -508,6 +535,7 @@
         
         .candidate-section {
             display: flex;
+            justify-content: center;
             height: 30px;
             width: 100%;
         }
@@ -518,6 +546,16 @@
 
         #trumpEV {
             background-color: #981f1f; /* Red for Trump */
+        }
+
+        #tossupEV {
+            background-color: #ccc39f;
+        }
+
+        #tossup {
+            text-align: center;
+            justify-content: center;
+
         }
 
         .electoral {
@@ -541,6 +579,7 @@
             gap: 3rem;
             border-radius: 5px;
             margin-bottom: 0.5rem;
+            margin-top: 0.25rem;
             align-items: center;
             width: 100%;
             justify-content: space-between;
@@ -548,10 +587,8 @@
         }
 
         .trump p {
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 14px;
             margin-left: 0.5rem;
-            margin-right: 0.5rem;
         }
 
 
@@ -568,10 +605,8 @@
         }
 
         .harris p {
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 14px;
             margin-left: 0.5rem;
-            margin-right: 0.5rem;
         }
 
         .state-data {
@@ -656,8 +691,8 @@
         }
 
         .tossup {
-            fill: gray;
-            background-color: gray;
+            fill: #ccc39f;
+            background-color: #ccc39f;
         }
 
         @media (max-width: 900px) {
@@ -696,7 +731,7 @@
                 <div class="trump-section">
                     <div>
                         <img src="https://raw.githubusercontent.com/bpyle02/2024-interactive-election-model/main/images/trump-square.png" />
-                        <span class="trump-header-text">Trump</span>
+                        <span class="trump-header-text">Trump Odds</span>
                     </div>
 
                     <div id="trump-vote-totals"></div>
@@ -706,13 +741,16 @@
                     <div id="harris-vote-totals"></div>
                     <div>
                         <img src="https://raw.githubusercontent.com/bpyle02/2024-interactive-election-model/main/images/harris-square.png" />
-                        <span class="harris-header-text">Harris</span>
+                        <span class="harris-header-text">Harris Odds Odds</span>
                     </div>
                 </div>
             </div>
             <div class="electoral-bar">
                 <div class="candidate trump-electoral" id="trumpBar">
                     <span id="trumpElectoralVotes">0</span>
+                </div>
+                <div class="candidate tossup-electoral" id="tossupBar">
+                    <span id="tossupElectoralVotes">0</span>
                 </div>
                 <div class="candidate harris-electoral" id="harrisBar">
                     <span id="harrisElectoralVotes">0</span>
@@ -724,6 +762,9 @@
                     <div class="electoral likely" id="trumpLikely"></div>
                     <div class="electoral lean" id="trumpLean"></div>
                     <div class="electoral tilt" id="trumpTilt"></div>
+                </div>
+                <div class="candidate-section" id="tossupEV">
+                    <div class="electoral tossup" id="tossup"></div>
                 </div>
                 <div class="candidate-section" id="harrisEV">
                     <div class="electoral tilt" id="harrisTilt"></div>
