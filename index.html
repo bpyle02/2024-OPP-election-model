@@ -303,7 +303,7 @@
                 margin *= -1
             }
 
-            if (margin <= 40) {
+            if (margin < 30) {
 
                 if (winner == "trump") {
                     trumpLean += electoral_votes
@@ -312,7 +312,7 @@
                 }
 
                 return "leans_";
-            } else if (margin <= 60) {
+            } else if (margin < 60) {
 
                 if (winner == "trump") {
                     trumpLikely += electoral_votes
@@ -1777,7 +1777,9 @@
         </div>
     <div class="chart">
         <h1>OPP National Average Graph</h1>
-        <canvas id="myChart"></canvas>
+        <canvas id="national-average-chart"></canvas>
+        <br>
+        <canvas id="election-simulation-chart"></canvas>
     </div>
 </body>
 <script>
@@ -1785,6 +1787,8 @@
     const sheetURL2 = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetName2}`; // Replace with your sheet name
     const sheetName3 = encodeURIComponent("Dated National Average")
     const sheetURL3 = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetName3}`; // Replace with your sheet name
+    const sheetName4 = encodeURIComponent("Simulation Electoral Results")
+    const sheetURL4 = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetName4}`; // Replace with your sheet name
 
     odds_data = {}
     national_average_data = {}
@@ -1798,16 +1802,19 @@
 
     async function getData() {
         try {
-            const [oddsResponse, nationalResponse] = await Promise.all([
+            const [oddsResponse, nationalResponse, simulationResultsResponse] = await Promise.all([
                 fetch(sheetURL2),
-                fetch(sheetURL3)
+                fetch(sheetURL3),
+                fetch(sheetURL4)
             ]);
 
             const oddsText = await oddsResponse.text();
             const nationalText = await nationalResponse.text();
+            const simulationResultsText = await simulationResultsResponse.text();
 
             handleOddsData(oddsText);
             handleNationalAverageData(nationalText);
+            handlesimulationResultsData(simulationResultsText)
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -1834,14 +1841,15 @@
             }
         }
     }
-    
-    async function chartIt() {
-        console.log(trump_national_averages)
-        console.log(national_average_dates)
 
-        const ctx = document.getElementById('myChart');
+    function handlesimulationResultsData(data) {
+        siumulation_results_data = csvToObject(data);
+    }
     
-        new Chart(ctx, {
+    async function chartNationalAverage() {
+        const ctx1 = document.getElementById('national-average-chart');
+    
+        new Chart(ctx1, {
             type: 'line',
             data: {
             labels: national_average_dates,
@@ -1921,8 +1929,82 @@
             }
         });
     }
+    
+    // async function chartSimulationResults() {
+    //     const ctx2 = document.getElementById('election-simulation-chart');
 
-    getData().then(() => chartIt());
+    //     var ties = [];
+    //     var trumpWins = Object.entries(siumulation_results_data).map((obj) => {
+    //         if (obj[1]['"Trump Electoral Votes"'] != obj[1]['"Harris Electoral Votes"']) {
+    //             parseInt(obj[1]['"Trump Electoral Votes"']);
+    //         } else {
+    //             ties.push(270);
+    //         }
+    //     });
+    //     var HarrisWins = Object.entries(siumulation_results_data).map((obj) => parseInt(obj[1]['"Harris Electoral Votes"']));
+
+    //     new Chart(ctx2, {
+    //         type: 'bar',
+    //         data: {
+    //             labels: ["Trump Win", "Harris Win", "Tie"],
+    //             datasets: [{
+    //                     label: 'Trump Win',
+    //                     data: trumpWins,
+    //                     fill: false,
+    //                     borderColor: '#981f1f',
+    //                     tension: 0.1
+    //                 },
+    //                 {
+    //                     label: 'Harris Win',
+    //                     data: HarrisWins,
+    //                     borderColor: '#1f4aa8',
+    //                 },
+    //                 {
+    //                     label: 'Tie',
+    //                     data: ties,
+    //                     fill: false,
+    //                     borderColor: '#901f98',
+    //                     tension: 0.1
+    //                 },]
+    //         },
+    //         options: {
+    //             scales: {
+    //                 x: {
+    //                     grid: {
+    //                         color: '#a0a0a0' // Change x-axis gridline color
+    //                     },
+    //                     ticks: {
+    //                         color: '#e0e0e0' // X-axis label color
+    //                     }
+    //                 },
+    //                 y: {
+    //                     grid: {
+    //                         color: '#a0a0a0' // Change y-axis gridline color
+    //                     },
+    //                     ticks: {
+    //                         color: '#e0e0e0' // Y-axis label color
+    //                     }
+    //                 }
+    //             },
+    //             plugins: {
+    //                 legend: {
+    //                     labels: {
+    //                         color: '#e0e0e0' // Change the color of legend text
+    //                     }
+    //                 },
+    //                 tooltip: {
+    //                     bodyColor: '#e0e0e0', // Change the color of tooltip text
+    //                     titleColor: '#e0e0e0' // Change the color of tooltip title
+    //                 }
+    //             }
+    //         }
+    //     });
+    // }
+
+    getData().then(() => {
+        chartNationalAverage();
+        // chartSimulationResults();
+    });
 
 </script>
 </html>
