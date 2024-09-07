@@ -352,8 +352,6 @@
                 length = lines.length
             }
 
-            console.log(length)
-
             for (let i = 1; i < length; i++) {
                 const currentLine = lines[i].split(',');
                 const stateData = {};
@@ -392,6 +390,21 @@
             }
 
             return result;
+        }
+
+        function csvToObject2(csvData) {
+        // Split the CSV into lines
+        data = []
+        const lines = csvData.split('\n');
+            
+            // Process each line
+            for (let i = 1; i < lines.length; i++) {   
+                // Split the line into fields
+                const fields = lines[i].split(',');
+                data.push({"Trump Data": parseInt(fields[0].replace('"', '').replace('"', '')), "Harris Data": parseInt(fields[1].replace('"', '').replace('"', ''))})
+            }
+
+            return data
         }
 
         addEventListener("resize", () => {
@@ -1835,7 +1848,7 @@
     }
 
     function handlesimulationResultsData(data) {
-        simulation_results_data = csvToObject(data);
+        simulation_results_data = csvToObject2(data);
         console.log(Object.keys(simulation_results_data).length)
     }
     
@@ -1892,6 +1905,10 @@
             options: {
                 scales: {
                     x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        },
                         grid: {
                             color: '#a0a0a0' // Change x-axis gridline color
                         },
@@ -1900,6 +1917,10 @@
                         }
                     },
                     y: {
+                        title: {
+                            display: true,
+                            text: 'Percent of Popular Vote'
+                        },
                         grid: {
                             color: '#a0a0a0' // Change y-axis gridline color
                         },
@@ -1926,38 +1947,47 @@
     async function chartSimulationResults() {
         const ctx2 = document.getElementById('election-simulation-chart');
 
-        let trumpWins = {};
-        let harrisWins = {};
-        let ties = {269: 0}; // Initialize with 269 as a tie
-
         console.log(simulation_results_data)
 
-        Object.entries(simulation_results_data).forEach(obj => {
-            const trumpVote = parseInt(obj[1]['"Trump Electoral Votes"']);
-            const harrisVote = parseInt(obj[1]['"Harris Electoral Votes"']);
+        let trumpWins = [{x: 0, y: 0}];
+        let harrisWins = [{x: 0, y: 0}];
+        let ties = [{x: 269, y: 0}];
 
-            // Update or initialize counts for Trump
-            if (!trumpWins[trumpVote]) {
-                trumpWins[trumpVote] = {x: trumpVote, y: 0};
+        for (let i = 0; i < simulation_results_data.length; i++) {
+            console.log(simulation_results_data[i])
+            if (simulation_results_data[i]['Trump Data'] == 269) {
+                ties[0].y++;
+                console.log("Ties: " + ties.y)
+            } else {
+                const existingTrump = trumpWins.find(entry => entry.x === simulation_results_data[i]['Trump Data']);
+                if (existingTrump) {
+                    existingTrump.y++;
+                    console.log("Found!")
+                } else {
+                    trumpWins.push({x: simulation_results_data[i]['Trump Data'], y: 1});
+                    console.log("Not found")
+                }
+
+                const existingHarris = harrisWins.find(entry => entry.x === simulation_results_data[i]['Harris Data']);
+                if (existingHarris) {
+                    existingHarris.y++;
+                    console.log("Found!")
+                } else {
+                    harrisWins.push({x: simulation_results_data[i]['Harris Data'], y: 1});
+                    console.log("Not found")
+                }
             }
-            trumpWins[trumpVote].y += 1;
+        }
 
-            // Update or initialize counts for Harris
-            if (!harrisWins[harrisVote]) {
-                harrisWins[harrisVote] = {x: harrisVote, y: 0};
-            }
-            harrisWins[harrisVote].y += 1;
+        // Calculate the maximum y-value from both datasets
+        let maxY = Math.max(
+            ...trumpWins.map(entry => entry.y),
+            ...harrisWins.map(entry => entry.y),
+            ties.y
+        );
 
-            // Handle ties
-            if (trumpVote === 269 && harrisVote === 269) {
-                ties[269].y += 1;
-            }
-        });
-
-        // Convert objects to arrays if needed for further processing or charting
-        let trumpWinsArray = Object.values(trumpWins);
-        let harrisWinsArray = Object.values(harrisWins);
-        let tiesArray = Object.values(ties);
+        // Set the chart height dynamically
+        let chartHeight = maxY * 1.2;
 
         new Chart(ctx2, {
             type: 'bar',
@@ -1966,24 +1996,23 @@
                 datasets: [{
                         label: 'Trump Win',
                         data: trumpWins,
-                        fill: false,
+                        barPercentage: 5,
                         borderColor: '#981f1f',
                         backgroundColor: '#981f1f',
-                        tension: 0.1
                     },
                     {
                         label: 'Harris Win',
                         data: harrisWins,
+                        barPercentage: 5,
                         borderColor: '#1f4aa8',
                         backgroundColor: '#1f4aa8',
                     },
                     {
                         label: 'Tie',
                         data: ties,
-                        fill: false,
-                        borderColor: '#901f98',
-                        backgroundColor: '#901f98',
-                        tension: 0.1
+                        barPercentage: 5,
+                        borderColor: '#ccc39f',
+                        backgroundColor: '#ccc39f',
                     },]
             },
             options: {
@@ -2010,7 +2039,8 @@
                         },
                         ticks: {
                             color: '#e0e0e0' // Y-axis label color
-                        }
+                        },
+                        max: maxY
                     }
                 },
                 plugins: {
