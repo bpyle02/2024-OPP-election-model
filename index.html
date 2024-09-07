@@ -128,12 +128,14 @@
                 requestAnimationFrame(() => {
                     nationalAverageChart = document.getElementById('national-average-chart');
                     nationalOddsChart = document.getElementById('national-odds-chart');
-                    histogramChart = document.getElementById('election-simulation-chart')
+                    histogramChart = document.getElementById('election-simulation-chart');
+                    chartHeaderText = document.getElementById('graph-title');
 
                     nationalAverageButton = document.getElementById('national-average-button');
                     nationalAverageButton.addEventListener("click", () => {
                         nationalOddsChart.style.display = 'none';
                         histogramChart.style.display = 'none';
+                        chartHeaderText.textContent = 'OPP National Average Graph';
                         nationalAverageChart.style.display = 'block';
                     });
 
@@ -141,6 +143,7 @@
                     nationalOddsButton.addEventListener("click", () => {
                         nationalAverageChart.style.display = 'none';
                         histogramChart.style.display = 'none';
+                        chartHeaderText.textContent = 'OPP National Odds Graph';
                         nationalOddsChart.style.display = 'block';
                         chartOddsResults(handleOddsData(odds_data['National']));
                     });
@@ -149,12 +152,14 @@
                     histogramButton.addEventListener("click", () => {
                         nationalAverageChart.style.display = 'none';
                         nationalOddsChart.style.display = 'none';
+                        chartHeaderText.textContent = 'OPP Electoral College Histogram';
                         histogramChart.style.display = 'block';
                     });
 
                     stateLink.addEventListener("click", () => {
                         nationalAverageChart.style.display = 'none';
                         histogramChart.style.display = 'none';
+                        chartHeaderText.textContent = 'OPP ' + state + ' Odds Graph';
                         nationalOddsChart.style.display = 'block';
                         chartOddsResults(handleOddsData(odds_data[state]));
                         getStateData(state, info.electoral_votes, info.expected_turnout, info.trump_votes, info.harris_votes, info.trump_win_pct, info.harris_win_pct);
@@ -1841,7 +1846,7 @@
     </div>
 
     <div class="chart">
-        <h1 class="graph-title">OPP National Average Graph</h1>
+        <h1 id="graph-title">OPP National Average Graph</h1>
         <div class="button-container">
             <button id="national-average-button">National Average</button>
             <button id="national-odds-button">National Odds</button>
