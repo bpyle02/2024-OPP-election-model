@@ -99,19 +99,19 @@
                 trumpTotalVotes += info.trump_votes
 
                 // Apply color based on winner
-                if (info.win_pct_margin < -20) {
-                    statePath.classList.add(calculateStateRating(info.win_pct_margin, info.electoral_votes) + 'democrat');
+                if (info.final_margin < 0) {
+                    statePath.classList.add(calculateStateRating(info.final_margin, info.electoral_votes) + 'democrat');
 
                     if (statePathRect) {
-                        statePathRect.classList.add(calculateStateRating(info.win_pct_margin, 0) + 'democrat');
+                        statePathRect.classList.add(calculateStateRating(info.final_margin, 0) + 'democrat');
                     }
 
                     harrisElectoralVotes += info.electoral_votes
-                } else if (info.win_pct_margin > 20) {
-                    statePath.classList.add(calculateStateRating(info.win_pct_margin, info.electoral_votes) + 'republican');
+                } else if (info.final_margin > 0) {
+                    statePath.classList.add(calculateStateRating(info.final_margin, info.electoral_votes) + 'republican');
 
                     if (statePathRect) {
-                        statePathRect.classList.add(calculateStateRating(info.win_pct_margin, 0) + 'republican');
+                        statePathRect.classList.add(calculateStateRating(info.final_margin, 0) + 'republican');
                     }
 
                     trumpElectoralVotes += info.electoral_votes
@@ -203,10 +203,18 @@
                         document.getElementById('trumpSafe').style.zIndex = 50;
                     }
 
-                    document.getElementById('tossupBar').style.width = (tossupElectoralVotes / totalElectoralVotes) * 100 + '%';
-                    document.getElementById('tossupBar').style.left = (trumpElectoralVotes / totalElectoralVotes) * 100 + '%';
-                    document.getElementById('tossupEV').style.width = (tossupElectoralVotes / totalElectoralVotes) * 100 + '%';
-                    document.getElementById('tossup').textContent = tossupElectoralVotes;
+                    // document.getElementById('tossupBar').style.width = (tossupElectoralVotes / totalElectoralVotes) * 100 + '%';
+                    // document.getElementById('tossupBar').style.left = (trumpElectoralVotes / totalElectoralVotes) * 100 + '%';
+                    // document.getElementById('tossupEV').style.width = (tossupElectoralVotes / totalElectoralVotes) * 100 + '%';
+                    // document.getElementById('tossup').textContent = tossupElectoralVotes;
+
+                    // if (tossupElectoralVotes > 0) {
+                    //     document.getElementById('tossup').textContent = tossupElectoralVotes;
+                    // } else {
+                    //     // document.getElementById('tossupEV').innerHTML = ``;
+                    //     document.getElementById('tossup').textContent = '';
+                    //     document.getElementById('tossupEV').hidden = true;
+                    // }
 
                     document.getElementById('harrisBar').style.width = (harrisElectoralVotes / totalElectoralVotes) * 100 + '%';
                     document.getElementById('harrisEV').style.width = (harrisElectoralVotes / totalElectoralVotes) * 100 + '%';
@@ -238,7 +246,7 @@
 
                     document.getElementById('trumpElectoralVotes').textContent = trumpElectoralVotes;
                     document.getElementById('harrisElectoralVotes').textContent = harrisElectoralVotes;
-                    document.getElementById('tossupElectoralVotes').textContent = tossupElectoralVotes
+                    // document.getElementById('tossupElectoralVotes').textContent = tossupElectoralVotes;
 
                     document.getElementById("trump-vote-totals").innerHTML = `
                         <span class="trump-odds">${(national_odds_trump).toFixed(0) + "%"}</span>
@@ -333,7 +341,15 @@
                 margin *= -1
             }
 
-            if (margin < 30) {
+            if (margin < 1) {
+                if (winner == "trump") {
+                    trumpTilt += electoral_votes
+                } else {
+                    harrisTilt += electoral_votes
+                }
+
+                return "tilt_";
+            } else if (margin < 5) {
 
                 if (winner == "trump") {
                     trumpLean += electoral_votes
@@ -342,7 +358,7 @@
                 }
 
                 return "leans_";
-            } else if (margin < 60) {
+            } else if (margin < 15) {
 
                 if (winner == "trump") {
                     trumpLikely += electoral_votes
@@ -479,6 +495,12 @@
             margin: 2rem;
             font-family: "Montserrat", Helvetica, sans-serif;
             background-color: #1d2b39;
+            color: #e0e0e0;
+        }
+
+        span {
+            padding: 1rem;
+            font-size: large;
         }
 
         text {
@@ -494,6 +516,7 @@
             border-radius: 3px;
             color: #e0e0e0;
             cursor: pointer;
+            font-size: large;
         }
 
         button:hover {
@@ -840,13 +863,13 @@
             </div>
             <div class="electoral-bar">
                 <div class="candidate trump-electoral" id="trumpBar">
-                    <span id="trumpElectoralVotes">0</span>
+                    <span id="trumpElectoralVotes"></span>
                 </div>
-                <div class="candidate tossup-electoral" id="tossupBar">
-                    <span id="tossupElectoralVotes">0</span>
-                </div>
+                <!-- <div class="candidate tossup-electoral" id="tossupBar">
+                    <span id="tossupElectoralVotes"></span>
+                </div> -->
                 <div class="candidate harris-electoral" id="harrisBar">
-                    <span id="harrisElectoralVotes">0</span>
+                    <span id="harrisElectoralVotes"></span>
                 </div>
             </div>
             <div class="electoral-bar-split">
@@ -856,9 +879,9 @@
                     <div class="electoral lean" id="trumpLean"></div>
                     <div class="electoral tilt" id="trumpTilt"></div>
                 </div>
-                <div class="candidate-section" id="tossupEV">
+                <!-- <div class="candidate-section" id="tossupEV">
                     <div class="electoral tossup" id="tossup"></div>
-                </div>
+                </div> -->
                 <div class="candidate-section" id="harrisEV">
                     <div class="electoral tilt" id="harrisTilt"></div>
                     <div class="electoral lean" id="harrisLean"></div>
@@ -866,6 +889,9 @@
                     <div class="electoral safe" id="harrisSafe"></div>
                 </div>
             </div>
+        </div>
+        <div class="key">
+            <span>Key: Solid 15+, Likely 5-15%, Lean 1-5, Tilt 0-1</span>
         </div>
         <div id="map">
             <svg height="100%" version="1.1" width="100%" xmlns="http://www.w3.org/2000/svg"
@@ -1852,6 +1878,7 @@
             <button id="national-odds-button">National Odds</button>
             <button id="election-simulation-button">Electoral College Histogram</button>
         </div>
+        <span>Click on a state to see its chart</span>
         <canvas id="national-average-chart"></canvas>
         <canvas style="display: none;" id='national-odds-chart'></canvas>
         <canvas style="display: none;" id="election-simulation-chart"></canvas>
