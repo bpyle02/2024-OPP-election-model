@@ -287,10 +287,10 @@
                                 </div>
                                 <span style='font-weight: bold;'>Expected Vote Share:</span>
                                 <div class='trump' style='width:${trumpWidth}%; height: 1.8rem;'>
-                                    <p style='white-space: nowrap'>Trump ${(info.trump_votes / info.expected_turnout * 100).toFixed(2)}%</p>
+                                    <p style='white-space: nowrap'>Trump ${(info.trump_votes / info.expected_turnout * 100 * 100).toFixed(2)}%</p>
                                 </div>
                                 <div class='harris' style='width:${harrisWidth}%; height: 1.8rem;'>
-                                    <p style='white-space: nowrap'>Harris ${(info.harris_votes / info.expected_turnout * 100).toFixed(2)}%</p>
+                                    <p style='white-space: nowrap'>Harris ${(info.harris_votes / info.expected_turnout * 100 * 100).toFixed(2)}%</p>
                                 </div>
                                 <span style='font-weight: bold;'>Odds:</span>
                                 <div class='trump' style='width:${trumpWidth}%; height: 1.8rem;'>
@@ -518,7 +518,7 @@
         button:hover {
             border: 1px solid #e0e0e0;
         }
-        
+
         .container {
             display: flex;
             flex-direction: column;
@@ -2015,6 +2015,11 @@
                 }]
             },
             options: {
+                layout: {
+                    padding: {
+                        bottom: 50
+                    }
+                },
                 scales: {
                     x: {
                         title: {
@@ -2051,7 +2056,7 @@
                         bodyColor: '#e0e0e0', // Change the color of tooltip text
                         titleColor: '#e0e0e0' // Change the color of tooltip title
                     }
-                }
+                },
             }
         });
     }
@@ -2120,6 +2125,11 @@
                     },]
             },
             options: {
+                layout: {
+                    padding: {
+                        bottom: 50
+                    }
+                },
                 scales: {
                     x: {
                         title: {
@@ -2143,8 +2153,7 @@
                         },
                         ticks: {
                             color: '#e0e0e0' // Y-axis label color
-                        },
-                        max: maxY
+                        }
                     }
                 },
                 plugins: {
@@ -2157,7 +2166,7 @@
                         bodyColor: '#e0e0e0', // Change the color of tooltip text
                         titleColor: '#e0e0e0' // Change the color of tooltip title
                     }
-                }
+                },
             }
         });
     }
@@ -2203,6 +2212,11 @@
                     }]
                 },
                 options: {
+                    layout: {
+                        padding: {
+                            bottom: 50
+                        }
+                    },
                     scales: {
                         x: {
                             title: {
@@ -2225,7 +2239,8 @@
                                 color: '#a0a0a0' // Change y-axis gridline color
                             },
                             ticks: {
-                                color: '#e0e0e0' // Y-axis label color
+                                color: '#e0e0e0', // Y-axis label color
+                                padding: 50
                             }
                         }
                     },
@@ -2245,9 +2260,54 @@
         }
     }
 
+    isDragging = false;
+    let leftCirclePos = undefined;
+    let rightCirclePos = undefined;
+    let min = 0;
+    let max = 0;
+
     getData().then(() => {
         chartNationalAverage();
         chartSimulationResults();
+        Chart.register({
+            id: 'zoomRangeSlider',
+            afterDatasetsDraw(chart, args, plugins) {
+                const {ctx, chartArea: {left, top, right, width}} = chart;
+
+                leftCirclePos = leftCirclePos || left;
+                const angle = 360 * Math.PI / 180
+
+                ctx.beginPath();
+                ctx.fillStyle = '#e0e0e0';
+                ctx.roundRect(left, 950, width, 10, 10);
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.fillStyle = 'black';
+                ctx.arc(leftCirclePos, 955, 10, 0, angle, false);
+                ctx.arc(right, 955, 10, 0, angle, false);
+                ctx.fill();
+            },
+            afterEvent(chart, args, plugins) {
+                const {ctx, canvas, chartArea: {left, top, right, width}} = chart;
+
+                canvas.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                })
+
+                canvas.addEventListener('mouseup', (e) => {
+                    isDragging = false;
+                })
+
+                if (args.event.type === 'mousemove' && isDragging) {
+                    const val = args.event.x / right;
+                    console.log(val)
+                    min = val * data.length - 1;
+                    args.changed = true;
+                    leftCirclePos = args.event.x;
+                }
+            }
+        })
     });
 
 </script>
