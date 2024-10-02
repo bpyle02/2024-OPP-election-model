@@ -14,12 +14,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script>
-        function fetchAndParseCSV(url) {
-            return fetch(url)
-                .then(response => response.text())
-                .then(parseCSV)
-                .catch(error => console.error('Error fetching or parsing CSV:', error));
+        sim_url = 'https://media.githubusercontent.com/media/bpyle02/2024-OPP-election-model/refs/heads/main/election_simulation.csv';
+        sim_data = [];
+        sim_data_histogram = [];
+        let national_odds_trump = 0;
+        let national_odds_harris = 0;
+
+        fetch(sim_url)
+            .then(response => response.text())
+            .then(data => handleSimData(data))
+            .catch(error => console.error('Error fetching or parsing CSV:', error));
+
+        function handleSimData(data) {
+            sim_data_histogram = csvToJSON(data);
+            
+            // Process all rows in the CSV file
+            sim_data_histogram.forEach(row => {
+                national_odds_trump = parseFloat(row['Trump Wins EC?']) * 100;
+                national_odds_harris = 100 - national_odds_trump;
+            });
+
+            // If you still need to get the 1000th row, you can:
+            sim_data = sim_data_histogram[1000];
         }
+
 
         let totalElectoralVotes = 538
 
@@ -45,9 +63,6 @@
 
         model_data = {}
 
-        national_odds_trump = 0;
-        national_odds_harris = 0;
-
         fetch(sheetURL)
             .then(response => response.text())
             .then(data => handleResponse(data))
@@ -58,10 +73,10 @@
 
             for (i in sheetObjects) {
 
-                if (sheetObjects[i]['"State"'] == 'Alabama') {
-                    national_odds_harris = sheetObjects[i]['"NATIONAL ODDS HARRIS"']
-                    national_odds_trump = sheetObjects[i]['"NATIONAL ODDS TRUMP"']
-                }
+                // if (sheetObjects[i]['"State"'] == 'Alabama') {
+                //     national_odds_harris = sheetObjects[i]['"NATIONAL ODDS HARRIS"']
+                //     national_odds_trump = sheetObjects[i]['"NATIONAL ODDS TRUMP"']
+                // }
 
                 model_data[sheetObjects[i]['"State"']] = {
                     "state_abbreviation": sheetObjects[i]['"State Abbreviation"'],
@@ -284,8 +299,10 @@
 
                     // Add hover event to show popup
                     stateLink.addEventListener('mouseenter', (event) => {
-                        trumpWidth = info.trump_votes / info.expected_turnout * 100;
-                        harrisWidth = info.harris_votes / info.expected_turnout * 100;
+                        trumpWidthVotes = info.trump_votes / info.expected_turnout * 100 * 100;
+                        harrisWidthVotes = info.harris_votes / info.expected_turnout * 100 * 100;
+                        trumpWidthOdds =(parseFloat(sim_data['Trump Wins ' + state]) * 100).toFixed(2);
+                        harrisWidthOdds = (parseFloat(sim_data['Harris Wins ' + state]) * 100).toFixed(2);
 
                         const popupHTML = `
                             <div class='popup-wrapper'>
@@ -293,18 +310,18 @@
                                     <h3>${state} - ${info.electoral_votes} EV</h3>
                                 </div>
                                 <span style='font-weight: bold;'>Expected Vote Share:</span>
-                                <div class='trump' style='width:${trumpWidth}%; height: 1.8rem;'>
+                                <div class='trump' style='width:${trumpWidthVotes}%; height: 1.8rem;'>
                                     <p style='white-space: nowrap'>Trump ${(info.trump_votes / info.expected_turnout * 100 * 100).toFixed(2)}%</p>
                                 </div>
-                                <div class='harris' style='width:${harrisWidth}%; height: 1.8rem;'>
+                                <div class='harris' style='width:${harrisWidthVotes}%; height: 1.8rem;'>
                                     <p style='white-space: nowrap'>Harris ${(info.harris_votes / info.expected_turnout * 100 * 100).toFixed(2)}%</p>
                                 </div>
                                 <span style='font-weight: bold;'>Odds:</span>
-                                <div class='trump' style='width:${trumpWidth}%; height: 1.8rem;'>
-                                    <p style='white-space: nowrap'>Trump ${(info.trump_win_pct).toFixed(2)}%</p>
+                                <div class='trump' style='width:${trumpWidthOdds}%; height: 1.8rem;'>
+                                    <p style='white-space: nowrap'>Trump ${(parseFloat(sim_data['Trump Wins ' + state]) * 100).toFixed(2)}%</p>
                                 </div>
-                                <div class='harris' style='width:${harrisWidth}%; height: 1.8rem;'>
-                                    <p style='white-space: nowrap'>Harris ${(info.harris_win_pct).toFixed(2)}%</p>
+                                <div class='harris' style='width:${harrisWidthOdds}%; height: 1.8rem;'>
+                                    <p style='white-space: nowrap'>Harris ${(parseFloat(sim_data['Harris Wins ' + state]) * 100).toFixed(2)}%</p>
                                 </div>
                             </div>
                         `;
@@ -448,6 +465,30 @@
             }
 
             return result;
+        }
+
+        function csvToJSON(csv) {
+            var lines = csv.split("\n");
+            var result = [];
+            var headers;
+            headers = lines[0].split(",");
+
+            for (var i = 1; i < lines.length; i++) {
+                var obj = {};
+
+                if(lines[i] == undefined || lines[i].trim() == "") {
+                    continue;
+                }
+
+                var words = lines[i].split(",");
+                for(var j = 0; j < words.length; j++) {
+                    obj[headers[j].trim()] = words[j];
+                }
+
+                result.push(obj);
+            }
+            console.log(typeof(result));
+            return result
         }
 
         function csvToObject2(csvData) {
@@ -2071,65 +2112,45 @@
     async function chartSimulationResults() {
         const ctx2 = document.getElementById('election-simulation-chart');
 
-        let trumpWins = [{x: 0, y: 0}];
-        let harrisWins = [{x: 0, y: 0}];
+        let trumpWins = Array.from({length: 538}, (_, i) => ({x: i + 1, y: 0}));
+        let harrisWins = Array.from({length: 538}, (_, i) => ({x: i + 1, y: 0}));
         let ties = [{x: 269, y: 0}];
 
-        for (let i = 0; i < simulation_results_data.length; i++) {
-            if (simulation_results_data[i]['Trump Data'] == 269) {
+        for (let i = 0; i < sim_data_histogram.length - 1; i++) {
+            if (sim_data_histogram[i]['Trump Electoral Votes'] == 269) {
                 ties[0].y++;
             } else {
-                const existingTrump = trumpWins.find(entry => entry.x === simulation_results_data[i]['Trump Data']);
-                if (existingTrump) {
-                    existingTrump.y++;
-                } else {
-                    trumpWins.push({x: simulation_results_data[i]['Trump Data'], y: 1});
-                }
-
-                const existingHarris = harrisWins.find(entry => entry.x === simulation_results_data[i]['Harris Data']);
-                if (existingHarris) {
-                    existingHarris.y++;
-                } else {
-                    harrisWins.push({x: simulation_results_data[i]['Harris Data'], y: 1});
-                }
+                trumpWins[sim_data_histogram[i]['Trump Electoral Votes'] - 1].y++;
+                harrisWins[sim_data_histogram[i]['Harris Electoral Votes'] - 1].y++;
             }
         }
-
-        // Calculate the maximum y-value from both datasets
-        let maxY = Math.max(
-            ...trumpWins.map(entry => entry.y),
-            ...harrisWins.map(entry => entry.y),
-            ties.y
-        );
-
-        // Set the chart height dynamically
-        let chartHeight = maxY * 1.2;
 
         new Chart(ctx2, {
             type: 'bar',
             data: {
-                labels: Array.from({length: 539}, (_, i) => i),
+                labels: Array.from({length: 538}, (_, i) => i + 1),
                 datasets: [{
                         label: 'Trump Win',
-                        data: trumpWins,
+                        data: trumpWins.map(item => item.y),
                         barPercentage: 5,
                         borderColor: '#981f1f',
                         backgroundColor: '#981f1f',
                     },
                     {
                         label: 'Harris Win',
-                        data: harrisWins,
+                        data: harrisWins.map(item => item.y),
                         barPercentage: 5,
                         borderColor: '#1f4aa8',
                         backgroundColor: '#1f4aa8',
                     },
                     {
                         label: 'Tie',
-                        data: ties,
+                        data: Array(538).fill(0).map((_, i) => (i + 1 === 269 ? ties[0].y : 0)),
                         barPercentage: 5,
                         borderColor: '#ccc39f',
                         backgroundColor: '#ccc39f',
-                    },]
+                    },
+                ]
             },
             options: {
                 layout: {
@@ -2173,7 +2194,7 @@
                         bodyColor: '#e0e0e0', // Change the color of tooltip text
                         titleColor: '#e0e0e0' // Change the color of tooltip title
                     }
-                },
+                }
             }
         });
     }
