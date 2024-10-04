@@ -49,10 +49,10 @@
             .then(data => handleResponse(data))
             .catch(error => console.error('Error:', error));
 
-        fetch(sim_url)
-            .then(response => response.text())
-            .then(data => handleSimData(data))
-            .catch(error => console.error('Error fetching or parsing CSV:', error));
+        // fetch(sim_url)
+        //     .then(response => response.text())
+        //     .then(data => handleSimData(data))
+        //     .catch(error => console.error('Error fetching or parsing CSV:', error));
             
         function handleResponse(data) {
             let sheetObjects = csvToObject(data);
@@ -78,22 +78,37 @@
                 }
             }
                 
-        function handleSimData(data) {
-            sim_data_histogram = csvToJSON(data);
+        async function handleSimData() {
+
+            try {
+                const response = await fetch(sim_url);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.text();
+    
+                newData = csvToJSON(data);
+                
+                // Process all rows in the CSV file
+                newData.forEach(row => {
+                    national_odds_trump = parseFloat(row['Trump Wins EC?']) * 100;
+                    national_odds_harris = 100 - national_odds_trump;
+                });
+    
+                // If you still need to get the 1000th row, you can:
+                sim_data = newData[newData.length - 1];
+                console.log("Odds ready")
+    
+                document.getElementById("info-text").textContent = "Key: Solid 15+, Likely 5-15, Lean 1-5, Tilt 0-1"
+    
+                
+            } catch (error) {
+                console.error('There has been a problem with your fetch operation:', error);
+                throw error;
+            }
             
-            // Process all rows in the CSV file
-            sim_data_histogram.forEach(row => {
-                national_odds_trump = parseFloat(row['Trump Wins EC?']) * 100;
-                national_odds_harris = 100 - national_odds_trump;
-            });
-
-            // If you still need to get the 1000th row, you can:
-            sim_data = sim_data_histogram[sim_data_histogram.length - 1];
-            console.log("Odds ready")
-
-            document.getElementById("info-text").textContent = "Key: Solid 15+, Likely 5-15, Lean 1-5, Tilt 0-1"
-
             colorStates(model_data)
+            return newData;
         }
 
         // Function to color the states and add hover effect
@@ -139,11 +154,11 @@
 
                     trumpElectoralVotes += info.electoral_votes
                 } else {
-                    statePath.classList.add('tossup');
+                    // statePath.classList.add('tossup');
 
-                    if (statePathRect) {
-                        statePathRect.classList.add('tossup');
-                    }
+                    // if (statePathRect) {
+                    //     statePathRect.classList.add('tossup');
+                    // }
 
                     tossupElectoralVotes += info.electoral_votes
                 }
@@ -469,6 +484,8 @@
         }
 
         function csvToJSON(csv) {
+            console.log(csv)
+            console.log(typeof(csv))
             var lines = csv.split("\n");
             var result = [];
             var headers;
@@ -2111,7 +2128,12 @@
     }
 
     async function chartSimulationResults() {
+        
+        const sim_data_histogram = await handleSimData();
+        
         const ctx2 = document.getElementById('election-simulation-chart');
+
+        console.log(sim_data_histogram)
 
         let trumpWins = Array.from({length: 538}, (_, i) => ({x: i + 1, y: 0}));
         let harrisWins = Array.from({length: 538}, (_, i) => ({x: i + 1, y: 0}));
@@ -2121,8 +2143,8 @@
             if (sim_data_histogram[i]['Trump Electoral Votes'] == 269) {
                 ties[0].y++;
             } else {
-                trumpWins[sim_data_histogram[i]['Trump Electoral Votes'] - 1].y++;
-                harrisWins[sim_data_histogram[i]['Harris Electoral Votes'] - 1].y++;
+                trumpWins[sim_data_histogram[i]['Trump Electoral Votes']].y++;
+                harrisWins[sim_data_histogram[i]['Harris Electoral Votes']].y++;
             }
         }
 
@@ -2289,54 +2311,9 @@
         }
     }
 
-    isDragging = false;
-    let leftCirclePos = undefined;
-    let rightCirclePos = undefined;
-    let min = 0;
-    let max = 0;
-
     getData().then(() => {
         chartNationalAverage();
         chartSimulationResults();
-        Chart.register({
-            id: 'zoomRangeSlider',
-            afterDatasetsDraw(chart, args, plugins) {
-                const {ctx, chartArea: {left, top, right, width}} = chart;
-
-                leftCirclePos = leftCirclePos || left;
-                const angle = 360 * Math.PI / 180
-
-                ctx.beginPath();
-                ctx.fillStyle = '#e0e0e0';
-                ctx.roundRect(left, 950, width, 10, 10);
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.fillStyle = 'black';
-                ctx.arc(leftCirclePos, 955, 10, 0, angle, false);
-                ctx.arc(right, 955, 10, 0, angle, false);
-                ctx.fill();
-            },
-            afterEvent(chart, args, plugins) {
-                const {ctx, canvas, chartArea: {left, top, right, width}} = chart;
-
-                canvas.addEventListener('mousedown', (e) => {
-                    isDragging = true;
-                })
-
-                canvas.addEventListener('mouseup', (e) => {
-                    isDragging = false;
-                })
-
-                if (args.event.type === 'mousemove' && isDragging) {
-                    const val = args.event.x / right;
-                    console.log(val)
-                    min = val * data.length - 1;
-                    args.changed = true;
-                    leftCirclePos = args.event.x;
-                }
-            }
-        })
     });
 
 </script>
