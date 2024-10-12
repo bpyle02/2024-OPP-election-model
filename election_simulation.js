@@ -169,8 +169,6 @@ function simulateElection(data) {
 
     test = objectToArray(calculateAverage(election_electoral_college_simulation_data, numberOfSimulations))
 
-    console.log(test)
-
     writeBatchToFile(test, true, filePath2, true);
 
     filePath3 = 'election_simulation_ec.csv';
@@ -297,8 +295,6 @@ function arrayToCSV(arr) {
     // Extract values and join them with commas
     const values = arr.map(item => Object.values(item)[0]).join(', ');
 
-    console.log(`${headers}\n${values}`)
-
     // Combine headers and values
     return `${headers}\n${values}`;
 }
@@ -324,7 +320,6 @@ function objectToCSV(array, includeHeaders) {
 
     // Add headers to the CSV only if includeHeaders is true
     if (includeHeaders) {
-        console.log("HEADERS!!!!!")
         csvRows.unshift(headers.map(header => {
             // Check if headers need quoting
             if (header.includes(',') || header.includes('\r') || header.includes('\n') || header.includes('"')) {

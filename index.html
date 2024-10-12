@@ -79,9 +79,6 @@
                         "win_pct_margin": parseFloat(sheetObjects[i]['"Win % Margin"'])
                     }
                 }
-
-
-                console.log(model_data)
             }
                 
         async function handleSimData() {
@@ -109,7 +106,6 @@
                     throw new Error('Network response was not ok');
                 }
                 const data2 = await response.text();
-                console.log(data2)
     
                 sim_data_obj = csvToObject3(data2);
 
@@ -117,9 +113,7 @@
 
                 national_odds_harris = (1 - parseFloat(sim_data['Trump Wins EC?'])) * 100
                 national_odds_trump = (parseFloat(sim_data['Trump Wins EC?'])) * 100
-                
-                console.log(sim_data)
-                
+                                
             } catch (error) {
                 console.error('There has been a problem with your fetch operation:', error);
                 throw error;
@@ -177,10 +171,6 @@
                     // if (statePathRect) {
                     //     statePathRect.classList.add('tossup');
                     // }
-
-                    console.log("TOSSUP: " + state)
-
-                    console.log(parseFloat(info.final_margin))
 
                     tossupElectoralVotes += info.electoral_votes
                 }
@@ -341,8 +331,6 @@
                         harrisWidthVotes = info.harris_votes / info.expected_turnout * 100 * 100;
                         trumpWidthOdds =(parseFloat(sim_data['Trump Wins ' + state]) * 100).toFixed(2);
                         harrisWidthOdds = (parseFloat(sim_data['Harris Wins ' + state]) * 100).toFixed(2);
-
-                        console.log(sim_data)
 
                         // console.log(sim_data['Harris Wins ' + state])
 
@@ -2179,9 +2167,6 @@
         const sim_data_histogram = await handleSimData();
         
         const ctx2 = document.getElementById('election-simulation-chart');
-
-        console.log("BROOOOOOOOOOOOOOOOOOOO")
-        console.log(sim_data_histogram)
 
         let trumpWins = Array.from({length: 538}, (_, i) => ({x: i + 1, y: 0}));
         let harrisWins = Array.from({length: 538}, (_, i) => ({x: i + 1, y: 0}));
