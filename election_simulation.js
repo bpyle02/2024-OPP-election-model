@@ -36,7 +36,7 @@ function handleResponse(data) {
 }
 
 function simulateElection(data) {
-    const numberOfSimulations = 1000;
+    const numberOfSimulations = 1000000;
 
     let trumpElectoralVotes = 0;
     let harrisElectoralVotes = 0;

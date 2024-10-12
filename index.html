@@ -109,8 +109,16 @@
                     throw new Error('Network response was not ok');
                 }
                 const data2 = await response.text();
+                console.log(data2)
     
-                sim_data = csvToJSON(data2);    
+                sim_data_obj = csvToObject3(data2);
+
+                sim_data = Object.fromEntries(sim_data_obj.map(item => Object.entries(item)[0]));
+
+                national_odds_harris = (1 - parseFloat(sim_data['Trump Wins EC?'])) * 100
+                national_odds_trump = (parseFloat(sim_data['Trump Wins EC?'])) * 100
+                
+                console.log(sim_data)
                 
             } catch (error) {
                 console.error('There has been a problem with your fetch operation:', error);
@@ -537,6 +545,27 @@
                 // Split the line into fields
                 const fields = lines[i].split(',');
                 data.push({"Trump Data": parseInt(fields[0].replace('"', '').replace('"', '')), "Harris Data": parseInt(fields[1].replace('"', '').replace('"', ''))})
+            }
+
+            return data
+        }
+
+        function csvToObject3(csvString) {
+            // Split the CSV string into lines
+            const lines = csvString.trim().split('\n');
+
+            valuesArray = lines[1].split(',')
+            headers = lines[0].split(',')
+
+            data = []
+
+            for (let i = 0; i < headers.length; i++) {
+                v = parseFloat(valuesArray[i].trim())
+
+                temp = {}
+                temp[headers[i].trim()] = v
+
+                data.push(temp)
             }
 
             return data
