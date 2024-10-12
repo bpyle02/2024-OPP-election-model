@@ -44,7 +44,7 @@ function simulateElection(data) {
     let election_electoral_college_simulation_data = Array.from({length: numberOfSimulations}, () => ({}));
 
     for (let i = 0; i < numberOfSimulations; i++) {
-        console.log("Beginning simulation " + i)
+        // console.log("Beginning simulation " + i)
         trumpElectoralVotes = 0;
         harrisElectoralVotes = 0;
 
@@ -138,9 +138,40 @@ function simulateElection(data) {
 
     
 
-    election_electoral_college_simulation_data.push(calculateAverage(election_electoral_college_simulation_data, numberOfSimulations))
+    // election_electoral_college_simulation_data.push(calculateAverage(election_electoral_college_simulation_data, numberOfSimulations))
 
-    writeBatchToFile(election_electoral_college_simulation_data, true);
+    const ec_data = [];
+    
+    // Loop through each key in the data object
+    for (let i = 0; i < election_electoral_college_simulation_data.length; i++) {
+        temp = {'Trump Electoral Votes': 0, 'Harris Electoral Votes': 0}
+
+        for (let key in election_electoral_college_simulation_data[i]) {
+            // Check if the key includes 'Alabama'
+            if (key.includes('Trump Electoral')) {
+                temp['Trump Electoral Votes'] = election_electoral_college_simulation_data[i]['Trump Electoral Votes']
+            }
+
+            if (key.includes('Harris Electoral')) {
+                temp['Harris Electoral Votes'] = election_electoral_college_simulation_data[i]['Harris Electoral Votes']
+            }
+
+        }
+
+        ec_data.push(temp)
+    }
+
+    filePath1 = 'election_simulation.csv';
+
+    writeBatchToFile(election_electoral_college_simulation_data, true, filePath1);
+
+    filePath2 = 'election_simulation_averages.csv';
+
+    writeBatchToFile(objectToArray(calculateAverage(election_electoral_college_simulation_data, numberOfSimulations)), true, filePath2);
+
+    filePath3 = 'election_simulation_ec.csv';
+
+    writeBatchToFile(ec_data, true, filePath3)
 }
 
 function standardNormal() {
@@ -162,9 +193,7 @@ function standardNormal() {
     return z1;
 }
 
-function writeBatchToFile(data, includeHeaders) {
-    filePath = 'election_simulation_' + mm + '-' + dd + '-' + yyyy + '.csv';
-
+function writeBatchToFile(data, includeHeaders, filePath) {
     const csvString = objectToCSV(data, includeHeaders); // Pass exists as a parameter to decide if headers should be included
     
     fs.writeFile(filePath, csvString, (err) => {
@@ -241,6 +270,17 @@ function csvToObject(csv) {
     }
 
     return result;
+}
+
+
+function objectToArray(obj) {
+    // Convert object to array of arrays where each inner array is [key, value]
+    const array = Object.entries(obj).map(([key, value]) => [key, value]);
+  
+    // Optionally, if you want the output to be more formatted or specific:
+    // return array.map(([header, value]) => ({ header, value }));
+    
+    return array;
 }
 
 function objectToCSV(array, includeHeaders) {
