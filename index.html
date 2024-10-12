@@ -14,8 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script>
-        ec_url = 'https://media.githubusercontent.com/media/bpyle02/2024-OPP-election-model/refs/heads/main/election_simulation_ec.csv';
-        sim_avg_url = 'https://media.githubusercontent.com/media/bpyle02/2024-OPP-election-model/refs/heads/main/election_simulation_averages.csv';
+        const ec_url = 'https://media.githubusercontent.com/media/bpyle02/2024-OPP-election-model/refs/heads/main/election_simulation_ec.csv';
+        const sim_avg_url = 'https://media.githubusercontent.com/media/bpyle02/2024-OPP-election-model/refs/heads/main/election_simulation_averages.csv';
 
         let totalElectoralVotes = 538
 
@@ -333,6 +333,8 @@
                         harrisWidthVotes = info.harris_votes / info.expected_turnout * 100 * 100;
                         trumpWidthOdds =(parseFloat(sim_data['Trump Wins ' + state]) * 100).toFixed(2);
                         harrisWidthOdds = (parseFloat(sim_data['Harris Wins ' + state]) * 100).toFixed(2);
+
+                        console.log(sim_data)
 
                         // console.log(sim_data['Harris Wins ' + state])
 
@@ -2149,20 +2151,23 @@
         
         const ctx2 = document.getElementById('election-simulation-chart');
 
+        console.log("BROOOOOOOOOOOOOOOOOOOO")
         console.log(sim_data_histogram)
 
         let trumpWins = Array.from({length: 538}, (_, i) => ({x: i + 1, y: 0}));
         let harrisWins = Array.from({length: 538}, (_, i) => ({x: i + 1, y: 0}));
         let ties = [{x: 269, y: 0}];
-
+        
+        
         for (let i = 0; i < sim_data_histogram.length - 1; i++) {
-            if (sim_data_histogram[i]['Trump Electoral Votes'] == 269) {
+            if (parseInt(sim_data_histogram[i]['Trump Electoral Votes']) == 269) {
                 ties[0].y++;
             } else {
-                trumpWins[sim_data_histogram[i]['Trump Electoral Votes']].y++;
-                harrisWins[sim_data_histogram[i]['Harris Electoral Votes']].y++;
+                trumpWins[parseInt(sim_data_histogram[i]['Trump Electoral Votes'])].y++;
+                harrisWins[parseInt(sim_data_histogram[i]['Harris Electoral Votes'])].y++;
             }
         }
+
 
         new Chart(ctx2, {
             type: 'bar',

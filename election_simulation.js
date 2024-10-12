@@ -167,7 +167,11 @@ function simulateElection(data) {
 
     filePath2 = 'election_simulation_averages.csv';
 
-    writeBatchToFile(objectToArray(calculateAverage(election_electoral_college_simulation_data, numberOfSimulations)), true, filePath2);
+    test = objectToArray(calculateAverage(election_electoral_college_simulation_data, numberOfSimulations))
+
+    console.log(test)
+
+    writeBatchToFile(test, true, filePath2, true);
 
     filePath3 = 'election_simulation_ec.csv';
 
@@ -193,8 +197,14 @@ function standardNormal() {
     return z1;
 }
 
-function writeBatchToFile(data, includeHeaders, filePath) {
-    const csvString = objectToCSV(data, includeHeaders); // Pass exists as a parameter to decide if headers should be included
+function writeBatchToFile(data, includeHeaders, filePath, useArray = false) {
+    let csvString = ''
+
+    if (useArray) {
+        csvString = arrayToCSV(data)
+    } else {
+        csvString = objectToCSV(data, includeHeaders);
+    } // Pass exists as a parameter to decide if headers should be included
     
     fs.writeFile(filePath, csvString, (err) => {
         if (err) throw err;
@@ -274,13 +284,23 @@ function csvToObject(csv) {
 
 
 function objectToArray(obj) {
-    // Convert object to array of arrays where each inner array is [key, value]
-    const array = Object.entries(obj).map(([key, value]) => [key, value]);
-  
-    // Optionally, if you want the output to be more formatted or specific:
-    // return array.map(([header, value]) => ({ header, value }));
-    
-    return array;
+    return Object.entries(obj).map(([key, value]) => {
+        // Create a new object with one key-value pair
+        return { [key]: value };
+    });
+}
+
+function arrayToCSV(arr) {
+    // Extract headers (keys)
+    const headers = arr.map(item => Object.keys(item)[0]).join(', ');
+
+    // Extract values and join them with commas
+    const values = arr.map(item => Object.values(item)[0]).join(', ');
+
+    console.log(`${headers}\n${values}`)
+
+    // Combine headers and values
+    return `${headers}\n${values}`;
 }
 
 function objectToCSV(array, includeHeaders) {
