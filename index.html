@@ -67,19 +67,20 @@
                     //     national_odds_trump = sheetObjects[i]['"NATIONAL ODDS TRUMP"']
                     // }
                     
-                    model_data[sheetObjects[i]['"State"']] = {
-                        "state_abbreviation": sheetObjects[i]['"State Abbreviation"'],
-                        "electoral_votes": parseInt(sheetObjects[i]['"Electoral Votes"']),
-                        "expected_turnout": parseInt(sheetObjects[i]['"Expected Votes"']),
-                        "final_margin": parseFloat(sheetObjects[i]['"FINAL MARGIN"']),
-                        "trump_votes": parseInt(sheetObjects[i]['"TRUMP VOTES"']),
-                        "harris_votes": parseInt(sheetObjects[i]['"HARRIS VOTES"']),
-                        "trump_win_pct": parseFloat(sheetObjects[i]['"Trump Win %"']),
-                        "harris_win_pct": parseFloat(sheetObjects[i]['"Harris Win %"']),
-                        "win_pct_margin": parseFloat(sheetObjects[i]['"Win % Margin"'])
-                    }
+                model_data[sheetObjects[i]['"STATES"']] = {
+                    "state_abbreviation": sheetObjects[i]['"State Abbreviation"'],
+                    "electoral_votes": parseInt(sheetObjects[i]['"Electoral Votes"']),
+                    "expected_turnout": parseInt(sheetObjects[i]['"Expected Votes"']),
+                    "final_margin": parseFloat(sheetObjects[i]['"FINAL MARGIN"']),
+                    "trump_votes": parseInt(sheetObjects[i]['"TRUMP VOTES"']),
+                    "harris_votes": parseInt(sheetObjects[i]['"HARRIS VOTES"']),
+                    "trump_win_pct": parseFloat(sheetObjects[i]['"Trump Win %"']),
+                    "harris_win_pct": parseFloat(sheetObjects[i]['"Harris Win %"']),
+                    "win_pct_margin": parseFloat(sheetObjects[i]['"Win % Margin"'])
                 }
             }
+        }
+
                 
         async function handleSimData() {
 
